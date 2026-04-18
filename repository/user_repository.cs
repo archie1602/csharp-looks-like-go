@@ -1,50 +1,53 @@
 using db;
 using domain;
+using Microsoft.EntityFrameworkCore;
 
 namespace repository;
 
 class UserRepository(AppDbContext db)
 {
-    public IReadOnlyList<User> List() => db.Users.OrderBy(user => user.Id).ToList();
+    public async Task<IReadOnlyList<User>> ListAsync() =>
+        await db.Users.OrderBy(user => user.Id).ToListAsync();
 
-    public User? GetById(long id) => db.Users.Find(id);
+    public async Task<User?> GetByIdAsync(long id) =>
+        await db.Users.FindAsync(id).AsTask();
 
-    public bool EmailExists(string email, long? exceptUserId = null)
+    public Task<bool> EmailExistsAsync(string email, long? exceptUserId = null)
     {
         var normalizedEmail = email.ToLower();
-        return db.Users.Any(user =>
+        return db.Users.AnyAsync(user =>
             user.Email.ToLower() == normalizedEmail &&
             user.Id != exceptUserId);
     }
 
-    public User Create(string name, string email)
+    public async Task<User> CreateAsync(string name, string email)
     {
         var user = new User { Name = name, Email = email };
         db.Users.Add(user);
-        db.SaveChanges();
+        await db.SaveChangesAsync();
         return user;
     }
 
-    public User? Update(long id, string name, string email)
+    public async Task<User?> UpdateAsync(long id, string name, string email)
     {
-        var user = GetById(id);
+        var user = await GetByIdAsync(id);
         if (user is null)
             return null;
 
         user.Name = name;
         user.Email = email;
-        db.SaveChanges();
+        await db.SaveChangesAsync();
         return user;
     }
 
-    public bool Delete(long id)
+    public async Task<bool> DeleteAsync(long id)
     {
-        var user = GetById(id);
+        var user = await GetByIdAsync(id);
         if (user is null)
             return false;
 
         db.Users.Remove(user);
-        db.SaveChanges();
+        await db.SaveChangesAsync();
         return true;
     }
 }

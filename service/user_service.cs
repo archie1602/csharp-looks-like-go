@@ -6,34 +6,34 @@ namespace service;
 
 class UserService(UserRepository repository)
 {
-    public IReadOnlyList<User> List() => repository.List();
+    public Task<IReadOnlyList<User>> ListAsync() => repository.ListAsync();
 
-    public User? Get(long id) => repository.GetById(id);
+    public Task<User?> GetAsync(long id) => repository.GetByIdAsync(id);
 
-    public User Create(CreateUserRequest request)
+    public async Task<User> CreateAsync(CreateUserRequest request)
     {
         var name = NormalizeRequired(request.Name, nameof(request.Name));
         var email = NormalizeRequired(request.Email, nameof(request.Email));
-        EnsureEmailIsUnique(email);
+        await EnsureEmailIsUniqueAsync(email);
 
-        return repository.Create(name, email);
+        return await repository.CreateAsync(name, email);
     }
 
-    public User? Update(long id, UpdateUserRequest request)
+    public async Task<User?> UpdateAsync(long id, UpdateUserRequest request)
     {
         var name = NormalizeRequired(request.Name, nameof(request.Name));
         var email = NormalizeRequired(request.Email, nameof(request.Email));
 
-        if (repository.GetById(id) is null)
+        if (await repository.GetByIdAsync(id) is null)
             return null;
 
-        EnsureEmailIsUnique(email, id);
-        return repository.Update(id, name, email);
+        await EnsureEmailIsUniqueAsync(email, id);
+        return await repository.UpdateAsync(id, name, email);
     }
 
-    public User? Patch(long id, PatchUserRequest request)
+    public async Task<User?> PatchAsync(long id, PatchUserRequest request)
     {
-        var existing = repository.GetById(id);
+        var existing = await repository.GetByIdAsync(id);
         if (existing is null)
             return null;
 
@@ -45,11 +45,11 @@ class UserService(UserRepository repository)
             ? existing.Email
             : NormalizeRequired(request.Email, nameof(request.Email));
 
-        EnsureEmailIsUnique(email, id);
-        return repository.Update(id, name, email);
+        await EnsureEmailIsUniqueAsync(email, id);
+        return await repository.UpdateAsync(id, name, email);
     }
 
-    public bool Delete(long id) => repository.Delete(id);
+    public Task<bool> DeleteAsync(long id) => repository.DeleteAsync(id);
 
     private static string NormalizeRequired(string value, string fieldName)
     {
@@ -60,9 +60,9 @@ class UserService(UserRepository repository)
         return normalized;
     }
 
-    private void EnsureEmailIsUnique(string email, long? exceptUserId = null)
+    private async Task EnsureEmailIsUniqueAsync(string email, long? exceptUserId = null)
     {
-        if (repository.EmailExists(email, exceptUserId))
+        if (await repository.EmailExistsAsync(email, exceptUserId))
             throw new InvalidOperationException("email already exists");
     }
 }

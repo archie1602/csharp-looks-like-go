@@ -5,61 +5,40 @@ namespace handler;
 
 class UserHandler(UserService service)
 {
-    public IResult ListUsers() => Results.Ok(service.List());
+    public Task<IReadOnlyList<domain.User>> ListUsersAsync() => service.ListAsync();
 
-    public IResult GetUser(long id)
+    public async Task<IResult> GetUserAsync(long id)
     {
-        var user = service.Get(id);
+        var user = await service.GetAsync(id);
         return user is null
             ? Results.NotFound()
             : Results.Ok(user);
     }
 
-    public IResult CreateUser(CreateUserRequest request)
+    public async Task<IResult> CreateUserAsync(CreateUserRequest request)
     {
-        try
-        {
-            var user = service.Create(request);
-            return Results.Created($"/api/users/{user.Id}", user);
-        }
-        catch (Exception ex) when (ex is ArgumentException or InvalidOperationException)
-        {
-            return Results.BadRequest(new ErrorResponse(ex.Message));
-        }
+        var user = await service.CreateAsync(request);
+        return Results.Created($"/api/users/{user.Id}", user);
     }
 
-    public IResult UpdateUser(long id, UpdateUserRequest request)
+    public async Task<IResult> UpdateUserAsync(long id, UpdateUserRequest request)
     {
-        try
-        {
-            var user = service.Update(id, request);
-            return user is null
-                ? Results.NotFound()
-                : Results.Ok(user);
-        }
-        catch (Exception ex) when (ex is ArgumentException or InvalidOperationException)
-        {
-            return Results.BadRequest(new ErrorResponse(ex.Message));
-        }
+        var user = await service.UpdateAsync(id, request);
+        return user is null
+            ? Results.NotFound()
+            : Results.Ok(user);
     }
 
-    public IResult PatchUser(long id, PatchUserRequest request)
+    public async Task<IResult> PatchUserAsync(long id, PatchUserRequest request)
     {
-        try
-        {
-            var user = service.Patch(id, request);
-            return user is null
-                ? Results.NotFound()
-                : Results.Ok(user);
-        }
-        catch (Exception ex) when (ex is ArgumentException or InvalidOperationException)
-        {
-            return Results.BadRequest(new ErrorResponse(ex.Message));
-        }
+        var user = await service.PatchAsync(id, request);
+        return user is null
+            ? Results.NotFound()
+            : Results.Ok(user);
     }
 
-    public IResult DeleteUser(long id) =>
-        service.Delete(id)
+    public async Task<IResult> DeleteUserAsync(long id) =>
+        await service.DeleteAsync(id)
             ? Results.NoContent()
             : Results.NotFound();
 }

@@ -1,5 +1,8 @@
+#!/usr/bin/env dotnet run
+
 #:sdk Microsoft.NET.Sdk.Web
 #:package Npgsql.EntityFrameworkCore.PostgreSQL
+#:package Microsoft.AspNetCore.OpenApi
 
 #:include config/config.cs
 #:include config/json_context.cs
@@ -10,11 +13,11 @@
 #:include repository/user_repository.cs
 #:include service/user_service.cs
 #:include handler/user_handler.cs
+#:include handler/exception_handler.cs
 
 using model;
 using config;
 using db;
-using domain;
 using handler;
 using Microsoft.EntityFrameworkCore;
 using service;
@@ -32,15 +35,22 @@ builder.Services.AddScoped<UserRepository>();
 builder.Services.AddScoped<UserService>();
 builder.Services.AddScoped<UserHandler>();
 
+builder.Services.AddExceptionHandler<BadRequestExceptionHandler>();
+builder.Services.AddProblemDetails();
+builder.Services.AddOpenApi();
+
 var app = builder.Build();
 
-var users = app.MapGroup("/api/users");
+app.UseExceptionHandler();
+app.MapOpenApi();
 
-users.MapGet(   "/",          (UserHandler handler)                                      => handler.ListUsers());
-users.MapGet(   "/{id:long}", (long id, UserHandler handler)                             => handler.GetUser(id));
-users.MapPost(  "/",          (CreateUserRequest request, UserHandler handler)           => handler.CreateUser(request));
-users.MapPut(   "/{id:long}", (long id, UpdateUserRequest request, UserHandler handler)  => handler.UpdateUser(id, request));
-users.MapPatch( "/{id:long}", (long id, PatchUserRequest request, UserHandler handler)   => handler.PatchUser(id, request));
-users.MapDelete("/{id:long}", (long id, UserHandler handler)                             => handler.DeleteUser(id));
+var users = app.MapGroup("/api/users").WithTags("users");
 
-app.Run();
+users.MapGet(   "/",          (UserHandler handler)                                      => handler.ListUsersAsync());
+users.MapGet(   "/{id:long}", (long id, UserHandler handler)                             => handler.GetUserAsync(id));
+users.MapPost(  "/",          (CreateUserRequest request, UserHandler handler)           => handler.CreateUserAsync(request));
+users.MapPut(   "/{id:long}", (long id, UpdateUserRequest request, UserHandler handler)  => handler.UpdateUserAsync(id, request));
+users.MapPatch( "/{id:long}", (long id, PatchUserRequest request, UserHandler handler)   => handler.PatchUserAsync(id, request));
+users.MapDelete("/{id:long}", (long id, UserHandler handler)                             => handler.DeleteUserAsync(id));
+
+await app.RunAsync();
