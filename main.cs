@@ -1,4 +1,3 @@
-#!/usr/bin/env dotnet
 #:sdk Microsoft.NET.Sdk.Web
 #:package Npgsql.EntityFrameworkCore.PostgreSQL
 
@@ -23,7 +22,7 @@ using repository;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Configuration.AddAppSettings();
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+var connectionString = builder.Configuration.GetPostgresConnectionString();
 
 builder.Services.AddDbContext<AppDbContext>(opt => opt.UseNpgsql(connectionString));
 builder.Services.AddValidation();
