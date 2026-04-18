@@ -1,0 +1,1 @@
+internal record CreateTodoRequest(string Title);
