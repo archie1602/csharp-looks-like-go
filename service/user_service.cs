@@ -25,9 +25,7 @@ class UserService(UserRepository repository)
         var email = NormalizeRequired(request.Email, nameof(request.Email));
 
         if (repository.GetById(id) is null)
-        {
             return null;
-        }
 
         EnsureEmailIsUnique(email, id);
         return repository.Update(id, name, email);
@@ -37,9 +35,7 @@ class UserService(UserRepository repository)
     {
         var existing = repository.GetById(id);
         if (existing is null)
-        {
             return null;
-        }
 
         var name = request.Name is null
             ? existing.Name
@@ -59,9 +55,7 @@ class UserService(UserRepository repository)
     {
         var normalized = value.Trim();
         if (string.IsNullOrWhiteSpace(normalized))
-        {
             throw new ArgumentException($"{fieldName} is required");
-        }
 
         return normalized;
     }
@@ -69,8 +63,6 @@ class UserService(UserRepository repository)
     private void EnsureEmailIsUnique(string email, long? exceptUserId = null)
     {
         if (repository.EmailExists(email, exceptUserId))
-        {
             throw new InvalidOperationException("email already exists");
-        }
     }
 }

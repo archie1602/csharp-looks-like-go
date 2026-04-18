@@ -1,9 +1,23 @@
+using System.ComponentModel.DataAnnotations;
+
 namespace model;
 
-record CreateUserRequest(string Name, string Email);
+record CreateUserRequest(
+    [property: Required, StringLength(100, MinimumLength = 1)]
+    string Name,
+    [property: Required, EmailAddress, StringLength(320)]
+    string Email);
 
-record UpdateUserRequest(string Name, string Email);
+record UpdateUserRequest(
+    [property: Required, StringLength(100, MinimumLength = 1)]
+    string Name,
+    [property: Required, EmailAddress, StringLength(320)]
+    string Email);
 
-record PatchUserRequest(string? Name, string? Email);
+record PatchUserRequest(
+    [property: StringLength(100, MinimumLength = 1)]
+    string? Name,
+    [property: EmailAddress, StringLength(320)]
+    string? Email);
 
 record ErrorResponse(string Error);
