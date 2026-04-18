@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="docs/banner.png" alt="csharp-looks-like-go" width="640">
+</p>
+
 # Minimal Web API
 
 A small ASP.NET Core CRUD service built as a **file-based app** (no `.csproj`, no `.sln`), targeting .NET 11. The goal is to show how far modern C# can go in looking and feeling like a Go or Python web service, while still giving you EF Core, DI, and the full ASP.NET Core pipeline.
