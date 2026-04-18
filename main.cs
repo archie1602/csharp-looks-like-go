@@ -1,56 +1,72 @@
-#!/usr/bin/env dotnet run
+#:property TargetFramework=net11.0
+#:property LangVersion=preview
+#:property ExperimentalFileBasedProgramEnableIncludeDirective=true
+#:property ExperimentalFileBasedProgramEnableTransitiveDirectives=true
 
-#:sdk Microsoft.NET.Sdk.Web
-#:package Npgsql.EntityFrameworkCore.PostgreSQL
-#:package Microsoft.AspNetCore.OpenApi
-
-#:include config/config.cs
-#:include config/json_context.cs
-#:include domain/user.cs
-#:include model/user_models.cs
-#:include db/app_db_context.cs
-#:include db/user_config.cs
-#:include repository/user_repository.cs
-#:include service/user_service.cs
-#:include handler/user_handler.cs
-#:include handler/exception_handler.cs
+#:include packages.cs
+#:include includes.cs
 
 using model;
 using config;
 using db;
 using handler;
-using Microsoft.EntityFrameworkCore;
+using middleware;
 using service;
 using repository;
+using Microsoft.EntityFrameworkCore;
 
-var builder = WebApplication.CreateBuilder(args);
-builder.Configuration.AddAppSettings();
-var connectionString = builder.Configuration.GetPostgresConnectionString();
+class Program
+{
+    static async Task Main(string[] args)
+    {
+        var builder = WebApplication.CreateBuilder(args);
+        builder.Configuration.AddAppSettings();
+        var connectionString = builder.Configuration.GetPostgresConnectionString();
 
-builder.Services.AddDbContext<AppDbContext>(opt => opt.UseNpgsql(connectionString));
-builder.Services.AddValidation();
-builder.Services.ConfigureHttpJsonOptions(opt => opt.SerializerOptions.TypeInfoResolverChain.Add(AppJsonSerializerContext.Default));
+        // dependency injection things
+        builder.Services.AddDbContext<AppDbContext>(opt => opt.UseNpgsql(connectionString));
+        builder.Services.AddValidation();
+        builder.Services.ConfigureHttpJsonOptions(opt => opt.SerializerOptions.TypeInfoResolverChain.Add(AppJsonSerializerContext.Default));
 
-builder.Services.AddScoped<UserRepository>();
-builder.Services.AddScoped<UserService>();
-builder.Services.AddScoped<UserHandler>();
+        builder.Services.AddScoped<UserRepository>();
+        builder.Services.AddScoped<UserService>();
+        builder.Services.AddScoped<UserHandler>();
 
-builder.Services.AddExceptionHandler<BadRequestExceptionHandler>();
-builder.Services.AddProblemDetails();
-builder.Services.AddOpenApi();
+        builder.Services.AddScoped<PostRepository>();
+        builder.Services.AddScoped<PostService>();
+        builder.Services.AddScoped<PostHandler>();
 
-var app = builder.Build();
+        builder.Services.AddExceptionHandler<BadRequestExceptionHandler>();
+        builder.Services.AddProblemDetails();
+        builder.Services.AddOpenApi();
 
-app.UseExceptionHandler();
-app.MapOpenApi();
+        var app = builder.Build();
 
-var users = app.MapGroup("/api/users").WithTags("users");
+        // middleware things
+        app.UseExceptionHandler();
+        app.UseMiddleware<RequestLogger>();
+        app.MapOpenApi();
 
-users.MapGet(   "/",          (UserHandler handler)                                      => handler.ListUsersAsync());
-users.MapGet(   "/{id:long}", (long id, UserHandler handler)                             => handler.GetUserAsync(id));
-users.MapPost(  "/",          (CreateUserRequest request, UserHandler handler)           => handler.CreateUserAsync(request));
-users.MapPut(   "/{id:long}", (long id, UpdateUserRequest request, UserHandler handler)  => handler.UpdateUserAsync(id, request));
-users.MapPatch( "/{id:long}", (long id, PatchUserRequest request, UserHandler handler)   => handler.PatchUserAsync(id, request));
-users.MapDelete("/{id:long}", (long id, UserHandler handler)                             => handler.DeleteUserAsync(id));
+        // endpoint things
+        var users = app.MapGroup("/api/users").WithTags("users");
 
-await app.RunAsync();
+        users.MapGet(   "/",          (UserHandler handler)                                      => handler.ListUsers());
+        users.MapGet(   "/{id:long}", (long id, UserHandler handler)                             => handler.GetUser(id));
+        users.MapPost(  "/",          (CreateUserRequest request, UserHandler handler)           => handler.CreateUser(request));
+        users.MapPut(   "/{id:long}", (long id, UpdateUserRequest request, UserHandler handler)  => handler.UpdateUser(id, request));
+        users.MapPatch( "/{id:long}", (long id, PatchUserRequest request, UserHandler handler)   => handler.PatchUser(id, request));
+        users.MapDelete("/{id:long}", (long id, UserHandler handler)                             => handler.DeleteUser(id));
+
+        var posts = app.MapGroup("/api/users/{userId:long}/posts").WithTags("posts");
+
+        posts.MapGet(   "/",          (long userId, PostHandler handler)                                       => handler.ListPosts(userId));
+        posts.MapGet(   "/{id:long}", (long userId, long id, PostHandler handler)                              => handler.GetPost(userId, id));
+        posts.MapPost(  "/",          (long userId, CreatePostRequest request, PostHandler handler)            => handler.CreatePost(userId, request));
+        posts.MapPut(   "/{id:long}", (long userId, long id, UpdatePostRequest request, PostHandler handler)   => handler.UpdatePost(userId, id, request));
+        posts.MapPatch( "/{id:long}", (long userId, long id, PatchPostRequest request, PostHandler handler)    => handler.PatchPost(userId, id, request));
+        posts.MapDelete("/{id:long}", (long userId, long id, PostHandler handler)                              => handler.DeletePost(userId, id));
+
+        // let's start our C#-go-frankenstein :D
+        await app.RunAsync();
+    }
+}

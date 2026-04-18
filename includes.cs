@@ -1,0 +1,17 @@
+#:include config/config.cs
+#:include config/json_context.cs
+#:include domain/user.cs
+#:include domain/post.cs
+#:include model/user_models.cs
+#:include model/post_models.cs
+#:include db/db_context.cs
+#:include db/user_config.cs
+#:include db/post_config.cs
+#:include repository/user_repository.cs
+#:include repository/post_repository.cs
+#:include service/user_service.cs
+#:include service/post_service.cs
+#:include handler/user_handler.cs
+#:include handler/post_handler.cs
+#:include handler/exception_handler.cs
+#:include middleware/request_logger.cs

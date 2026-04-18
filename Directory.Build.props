@@ -1,8 +1,0 @@
-<Project>
-  <PropertyGroup>
-    <TargetFramework>net11.0</TargetFramework>
-    <LangVersion>preview</LangVersion>
-    <ExperimentalFileBasedProgramEnableIncludeDirective>true</ExperimentalFileBasedProgramEnableIncludeDirective>
-    <ExperimentalFileBasedProgramEnableTransitiveDirectives>true</ExperimentalFileBasedProgramEnableTransitiveDirectives>
-  </PropertyGroup>
-</Project>

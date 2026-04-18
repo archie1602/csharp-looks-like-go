@@ -6,13 +6,13 @@ namespace repository;
 
 class UserRepository(AppDbContext db)
 {
-    public async Task<IReadOnlyList<User>> ListAsync() =>
+    public async Task<IReadOnlyList<User>> List() =>
         await db.Users.OrderBy(user => user.Id).ToListAsync();
 
-    public async Task<User?> GetByIdAsync(long id) =>
+    public async Task<User?> GetById(long id) =>
         await db.Users.FindAsync(id).AsTask();
 
-    public Task<bool> EmailExistsAsync(string email, long? exceptUserId = null)
+    public Task<bool> EmailExists(string email, long? exceptUserId = null)
     {
         var normalizedEmail = email.ToLower();
         return db.Users.AnyAsync(user =>
@@ -20,7 +20,7 @@ class UserRepository(AppDbContext db)
             user.Id != exceptUserId);
     }
 
-    public async Task<User> CreateAsync(string name, string email)
+    public async Task<User> Create(string name, string email)
     {
         var user = new User { Name = name, Email = email };
         db.Users.Add(user);
@@ -28,9 +28,9 @@ class UserRepository(AppDbContext db)
         return user;
     }
 
-    public async Task<User?> UpdateAsync(long id, string name, string email)
+    public async Task<User?> Update(long id, string name, string email)
     {
-        var user = await GetByIdAsync(id);
+        var user = await GetById(id);
         if (user is null)
             return null;
 
@@ -40,9 +40,9 @@ class UserRepository(AppDbContext db)
         return user;
     }
 
-    public async Task<bool> DeleteAsync(long id)
+    public async Task<bool> Delete(long id)
     {
-        var user = await GetByIdAsync(id);
+        var user = await GetById(id);
         if (user is null)
             return false;
 
