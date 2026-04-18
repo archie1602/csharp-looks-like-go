@@ -485,3 +485,6 @@ $RECYCLE.BIN/
 
 
 .dotnet/
+
+# Throwaway EF tooling project (see README migrations section)
+.tooling/
