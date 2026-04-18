@@ -1,4 +1,7 @@
 
+using Humanizer;
+using models;
+
 namespace services;
 
 internal sealed class TodoService
@@ -14,7 +17,7 @@ internal sealed class TodoService
     public TodoItem Create(string title)
     {
         var nextId = _todos.Count == 0 ? 1 : _todos.Max(x => x.Id) + 1;
-        var todo = new TodoItem(nextId, title, false);
+        var todo = new TodoItem(nextId, title.Humanize(LetterCasing.Sentence), false);
         _todos.Add(todo);
         return todo;
     }
