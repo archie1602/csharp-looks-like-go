@@ -1,37 +1,43 @@
 #!/usr/bin/env dotnet
 #:sdk Microsoft.NET.Sdk.Web
-#:package Humanizer
-#:property TargetFramework=net11.0
-#:property LangVersion=preview
+#:package Npgsql.EntityFrameworkCore.PostgreSQL
 
-#:property ExperimentalFileBasedProgramEnableIncludeDirective=true
-#:property ExperimentalFileBasedProgramEnableTransitiveDirectives=true
+#:include config/config.cs
+#:include domain/user.cs
+#:include model/user_models.cs
+#:include db/app_db_context.cs
+#:include db/user_config.cs
+#:include repository/user_repository.cs
+#:include service/user_service.cs
+#:include handler/user_handler.cs
 
-#:include models/todo_item.cs
-#:include contracts/todo_contracts.cs
-#:include services/todo_service.cs
-#:include endpoints/todo_endpoints.cs
-
-using System.Text.Json.Serialization;
-using services;
-using models;
+using model;
+using config;
+using db;
+using domain;
+using handler;
+using Microsoft.EntityFrameworkCore;
+using service;
+using repository;
 
 var builder = WebApplication.CreateBuilder(args);
+builder.Configuration.AddAppSettings();
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 
-builder.Services.AddSingleton<TodoService>();
-builder.Services.ConfigureHttpJsonOptions(options =>
-    options.SerializerOptions.TypeInfoResolverChain.Add(AppJsonSerializerContext.Default));
+builder.Services.AddDbContext<AppDbContext>(opt => opt.UseNpgsql(connectionString));
+builder.Services.AddScoped<UserRepository>();
+builder.Services.AddScoped<UserService>();
+builder.Services.AddScoped<UserHandler>();
 
 var app = builder.Build();
 
-app.MapGet("/", () => Results.Ok(new ApiStatusResponse("Todo API is running")));
-app.MapTodoEndpoints();
+var users = app.MapGroup("/api/users");
+
+users.MapGet("/", (UserHandler handler) => handler.ListUsers());
+users.MapGet("/{id:long}", (long id, UserHandler handler) => handler.GetUser(id));
+users.MapPost("/", (CreateUserRequest request, UserHandler handler) => handler.CreateUser(request));
+users.MapPut("/{id:long}", (long id, UpdateUserRequest request, UserHandler handler) => handler.UpdateUser(id, request));
+users.MapPatch("/{id:long}", (long id, PatchUserRequest request, UserHandler handler) => handler.PatchUser(id, request));
+users.MapDelete("/{id:long}", (long id, UserHandler handler) => handler.DeleteUser(id));
 
 app.Run();
-
-[JsonSerializable(typeof(ApiStatusResponse))]
-[JsonSerializable(typeof(CreateTodoRequest))]
-[JsonSerializable(typeof(IReadOnlyList<TodoItem>))]
-[JsonSerializable(typeof(List<TodoItem>))]
-[JsonSerializable(typeof(TodoItem))]
-internal sealed partial class AppJsonSerializerContext : JsonSerializerContext;

@@ -4,7 +4,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageVersion Include="Scalar.AspNetCore" Version="2.3.0" />
-    <PackageVersion Include="Humanizer" Version="2.14.1" />
+    <PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.1" />
   </ItemGroup>
 </Project>
