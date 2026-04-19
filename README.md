@@ -121,7 +121,7 @@ dotnet publish main.cs -o bin \
   -p:StripSymbols=true
 ```
 
-### 🎯 The result: **~30 MB. One file. Zero dependencies.**
+### The result: **~30 MB. One file. Zero dependencies.**
 
 | Out of the box | Size-optimized |
 | -------------- | -------------- |
@@ -129,13 +129,13 @@ dotnet publish main.cs -o bin \
 
 That's a full ASP.NET Core web service with EF Core, PostgreSQL driver, validation, OpenAPI, and a PATCH API, in **one file** weighing roughly the same as a modern Electron app's splash screen.
 
-### 🚀 What you **don't** need on the target machine
+### What you **don't** need on the target machine
 
-- ❌ No .NET SDK
-- ❌ No .NET runtime
-- ❌ No ASP.NET Core shared framework
-- ❌ No `dotnet` CLI
-- ❌ No container, no `glibc` shim, no sidecar
+- No .NET SDK
+- No .NET runtime
+- No ASP.NET Core shared framework
+- No `dotnet` CLI
+- No container, no `glibc` shim, no sidecar
 
 Just the binary. `scp bin/main user@server:/opt/app/main`, `./main`, done. Exactly like shipping a Go binary, except you're writing C#.
 

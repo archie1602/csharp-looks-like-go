@@ -15,6 +15,9 @@ using service;
 using repository;
 using Microsoft.EntityFrameworkCore;
 
+// Curious why I kept Program/Main? Modern C# lets you drop them (top-level statements),
+// but I wanted a real entry point. Python has none and gets flak for it; Go has one and
+// I wanted to mimic that. Also, no thanks to looking like a Node.js script.
 class Program
 {
     static async Task Main(string[] args)
