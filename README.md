@@ -1,14 +1,14 @@
 <p align="center">
-  <img src="docs/banner.png" alt="csharp-looks-like-go" width="640">
+  <img src="docs/banner2.png" alt="csharp-looks-like-go" width="640">
 </p>
 
 # Minimal Web API
 
-A small ASP.NET Core CRUD service built as a **file-based app** (no `.csproj`, no `.sln`), targeting .NET 11. The goal is to show how far modern C# can go in looking and feeling like a Go or Python web service, while still giving you EF Core, DI, and the full ASP.NET Core pipeline.
+A small ASP.NET Core CRUD service built as a **file-based app** (no `.csproj`, no `.sln`/`.slnx`), targeting .NET 11. The goal is to show how far modern C# can go in looking and feeling like a Go or Python web service, while still giving you EF Core, DI, and the full ASP.NET Core pipeline.
 
 ## Idea
 
-File-based apps (new in .NET 10 / refined in .NET 11 preview 3) let you ship a real web app as a handful of `.cs` files with directives at the top:
+File-based apps (new in .NET 10 / refined in [.NET 11 preview 3](https://github.com/dotnet/core/blob/main/release-notes/11.0/preview/preview3/sdk.md#file-based-apps-can-be-split-across-files)) let you ship a real web app as a handful of `.cs` files with directives at the top:
 
 ```csharp
 #:sdk Microsoft.NET.Sdk.Web
@@ -52,16 +52,15 @@ globals.cs    global using directives
 
 The codebase intentionally leans toward Go/Python aesthetics:
 
-- **snake_case file names** (`user_handler.cs`, `post_repository.cs`): matches Go/Python, easy to grep.
-- **lowercase, singular folder names** (`handler`, not `Handlers`): Go stdlib style (`net/http`, `encoding/json`).
-- **Lowercase, singular namespaces** (`handler`, `service`, `repository`): follows the folder convention; namespaces read as Go packages (`handler.UserHandler`).
-- **No `Async` suffix on methods**. Every method here is async, so the suffix carries no information. The Framework Design Guidelines still recommend the suffix for *library* APIs; this is an app, so it's dropped for readability.
-- **Primary constructors everywhere**: `class UserService(UserRepository repo)` replaces the old Java-style ceremony.
-- **Layered architecture, not vertical slices**. Each concern (handler/service/repository) has its own folder. Simple enough to navigate, teaches the pipeline explicitly.
-- **`required` properties on entities**: compile-time enforcement replaces `= null!;` hacks. Nav props stay as `= [];` / `= null!;` per EF convention.
-- **Central JSON source-gen context** (`config/json_context.cs`): AOT-friendly, one place to register all serialized types.
-- **Central exception handling** via `IExceptionHandler` + `ProblemDetails`. Handlers don't try/catch; `ArgumentException` / `InvalidOperationException` from services become `400` automatically.
-- **Flat `#:include` manifest**. All file includes live in `includes.cs`, referenced once from `main.cs`. `main.cs` stays a short preamble (properties, packages, includes, entry point).
+- snake_case file names (`user_handler.cs`, `post_repository.cs`): matches Go/Python, easy to grep.
+- lowercase, singular folder names (`handler`, not `Handlers`): Go stdlib style (`net/http`, `encoding/json`).
+- Lowercase, singular namespaces (`handler`, `service`, `repository`): follows the folder convention; namespaces read as Go packages (`handler.UserHandler`).
+- No Async suffix on methods. Every method here is async, so the suffix carries no information.
+- Primary constructors everywhere: `class UserService(UserRepository repo)` replaces the old Java-style ceremony.
+- Layered architecture, not vertical slices. Each concern (handler/service/repository) has its own folder. Simple enough to navigate, teaches the pipeline explicitly.
+- Central JSON source-gen context (`config/json_context.cs`): AOT-friendly, one place to register all serialized types.
+- Central exception handling via `IExceptionHandler` + `ProblemDetails`. Handlers don't try/catch.
+- Flat `#:include` manifest. All file includes live in `includes.cs`, referenced once from `main.cs`. `main.cs` stays a short preamble (properties, packages, includes, entry point).
 
 ## Endpoints
 
@@ -134,8 +133,8 @@ That's a full ASP.NET Core web service with EF Core, PostgreSQL driver, validati
 - No .NET SDK
 - No .NET runtime
 - No ASP.NET Core shared framework
-- No `dotnet` CLI
-- No container, no `glibc` shim, no sidecar
+- No dotnet CLI
+- No container, no glibc shim, no sidecar
 
 Just the binary. `scp bin/main user@server:/opt/app/main`, `./main`, done. Exactly like shipping a Go binary, except you're writing C#.
 
@@ -147,7 +146,7 @@ Just the binary. `scp bin/main user@server:/opt/app/main`, `./main`, done. Exact
 
 Migrations are checked in under `migrations/` (snake_case filenames matching the file-naming convention).
 
-As of .NET 11 preview 3, `dotnet ef` still expects an SDK-style `.csproj` and can't target a file-based app directly. To add a migration:
+As of .NET 11 preview 3, `dotnet ef` tool still expects an SDK-style `.csproj` and can't target a file-based app directly. To add a migration:
 
 1. Create a temporary `.tooling/tooling.csproj` that globs the entity + DbContext + migration files from the repo via `<Compile Include="..\domain\*.cs" />` etc., and references `Microsoft.EntityFrameworkCore.Design` + the Postgres provider.
 2. Add a small `IDesignTimeDbContextFactory<AppDbContext>` in the tooling folder.
